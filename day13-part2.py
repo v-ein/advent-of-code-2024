@@ -3,6 +3,8 @@ import math
 import re
 from puzzle_input import puzzle_input
 
+# DISCLAIMER: after looking at other people's solutions, I must admit
+# I overcomplicated this one :).  Don't use it for anything.
 
 def lcm(a, b):
     return abs(a * b) // math.gcd(a, b)
