@@ -20,43 +20,36 @@ dirs = [
     (0, -1),
 ]
 
-# This piece was mostly copy-pasted from part 1, even though we now store the route
-# in a separate list of coordinates, and don't have any use for the "times" map.
-WALL = -1
-times = [[WALL] * width for y in range(height)]
-
 
 x, y = sx, sy
-path_len = 0
-times[y][x] = path_len
-route = [(sx, sy)]
+# (-1, -1) is a fake tile that we'll remove later - we need it so that we can safely
+# refer to route[-2] all the time.
+route = [(-1, -1), (sx, sy)]
+
 while (x, y) != (ex, ey):
     for dx, dy in dirs:
         nx = x + dx
         ny = y + dy
-        if map[ny][nx] != "#" and times[ny][nx] == WALL:
+        if map[ny][nx] != "#" and (nx, ny) != route[-2]:
             x, y = nx, ny
             break
     else:
         assert False, f"Got into a dead end at {x, y}."
-    path_len += 1
-    times[ny][nx] = path_len
-    route.append((nx, ny))
+    route.append((x, y))
 
+del route[0]
 
 cheat_count = 0
+# While technically we could check shortcuts from every route point to every other point,
+# it doesn't make sense to check points being fewer than (threshold+2) steps apart from
+# each other.  They will never give us savings higher than the threshold.
+min_dist = threshold + 2
 
-r_route = list(reversed(route))
-
-for si, (sx, sy) in enumerate(route):
-    for ei, (ex, ey) in enumerate(r_route):
-        ei = len(route) - ei - 1
-        max_save = ei - si - 2
-        if max_save < threshold:
-            break
-        cutoff_len = (abs(ex - sx) + abs(ey - sy))
+for ei, (ex, ey) in enumerate(route[min_dist:]):
+    for si, (sx, sy) in enumerate(route[:ei + 1]):
+        cutoff_len = abs(ex - sx) + abs(ey - sy)
         if cutoff_len <= cheat_time:
-            save = (ei - si) - cutoff_len
+            save = min_dist + ei - si - cutoff_len
             if save >= threshold:
                 cheat_count += 1
 
